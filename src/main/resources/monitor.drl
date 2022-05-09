@@ -1,0 +1,8 @@
+package com.ming.zhang2.drools_demo;
+
+dialect  "mvel"
+
+rule "monitor"
+    when
+    then
+end

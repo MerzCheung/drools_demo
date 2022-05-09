@@ -1,8 +1,6 @@
 package com.ming.zhang2.drools_demo;
 
 import java.math.BigDecimal;
-import org.kie.api.runtime.KieContainer;
-import org.kie.api.runtime.KieSession;
 
 dialect  "mvel"
 global com.ming.zhang2.drools_demo.TaxiFare rideFare

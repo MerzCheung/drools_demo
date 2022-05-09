@@ -103,8 +103,46 @@ public class DroolsDemoApplicationTests {
                 "        rideFare.setRideFare(new BigDecimal(45.8).add(secondFare));\n" +
                 "        System.out.println(\"#应付金额 : \"+rideFare.getRideFare());\n" +
                 "end";
+        String drlStr2 = "package com.ming.zhang2.drools_demo;\n" +
+                "\n" +
+                "import java.math.BigDecimal;\n" +
+                "import org.kie.api.runtime.KieContainer;\n" +
+                "import org.kie.api.runtime.KieSession;\n" +
+                "\n" +
+                "dialect  \"mvel\"\n" +
+                "global com.ming.zhang2.drools_demo.TaxiFare rideFare\n" +
+                "\n" +
+                "\n" +
+                "\n" +
+                "rule \"Calculate Taxi Fare - Output11 \"\n" +
+                "salience 100\n" +
+                "    when\n" +
+                "        $taxiRide:TaxiRide();\n" +
+                "    then\n" +
+                "        System.out.println(\"#公里数 : \"+$taxiRide.getDistanceInMile());\n" +
+                "        System.out.println(\"#起步价11 : \"+12);\n" +
+                "        rideFare.setNightSurcharge(BigDecimal.ZERO);\n" +
+                "        rideFare.setRideFare(BigDecimal.ZERO);\n" +
+                "end\n" +
+                "\n" +
+                "\n" +
+                "rule \"Calculate Taxi Fare - 25~35 kilometers222\"\n" +
+                "salience 99\n" +
+                "    when\n" +
+                "    \t//续租价：超过3公里部分，每公里2.6元;\n" +
+                "\t\t//返空费实行阶梯附加，15至25公里按照续租价加收20%\n" +
+                "        $taxiRide:TaxiRide( isNightSurcharge == false , distanceInMile > 25 , distanceInMile <= 35);\n" +
+                "    then\n" +
+                "\n" +
+                "        BigDecimal secondFare = ($taxiRide.getDistanceInMile().subtract(new BigDecimal(25))).multiply(new BigDecimal(2.6)).multiply(new BigDecimal(1.2));\n" +
+                "        System.out.println(\"#续租价 : \"+secondFare);\n" +
+                "        //12+13x2.6\n" +
+                "        rideFare.setRideFare(new BigDecimal(45.8).add(secondFare));\n" +
+                "        System.out.println(\"#应付金额222 : \"+rideFare.getRideFare());\n" +
+                "end\n";
         KieHelper helper=new KieHelper();
         helper.addContent(drlStr, ResourceType.DRL);
+        helper.addContent(drlStr2, ResourceType.DRL);
         KnowledgeBaseImpl kieBase =(KnowledgeBaseImpl) helper.build();
         KieSession kieSession = kieBase.newKieSession();
 
@@ -120,8 +158,8 @@ public class DroolsDemoApplicationTests {
         TaxiRide taxiRide3 = new TaxiRide(false, new BigDecimal(10));
         aaa(kieSession, taxiRide3);
 
-        // 新增规则
-//        helper.addContent(drlStr, ResourceType.DRL);
+        TaxiRide taxiRide4 = new TaxiRide(false, new BigDecimal(30));
+        aaa(kieSession, taxiRide4);
 
         kieSession.dispose();
 //        //重新添加规则
@@ -134,10 +172,11 @@ public class DroolsDemoApplicationTests {
 
     }
 
-    private void aaa(KieSession kieSession, TaxiRide taxiRide) {
+    private void aaa(KieSession kieSession, TaxiRide taxiRide) throws InterruptedException {
         TaxiFare rideFare = new TaxiFare();
         kieSession.setGlobal("rideFare", rideFare);
         kieSession.insert(taxiRide);
+        Thread.sleep(2000);
         kieSession.fireAllRules();
         String totalString = rideFare.total().setScale(1,BigDecimal.ROUND_UP).stripTrailingZeros().toPlainString();
         System.out.println(totalString);
